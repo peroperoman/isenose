@@ -1,7 +1,6 @@
 import random
 
-
-def create_player(name):
+def create_player(name, is_auto=True):
     return {
         'name': name,
         'finger': 2,
@@ -9,103 +8,100 @@ def create_player(name):
         'order': False,
         'win': False,
         'lank': None,
+        'is_auto': is_auto,
     }
 
 def init_order(players):
-    init_idx = random.randint(0, len(players)-1)
-    players[init_idx]["order"] = True
+    init_i = random.randint(0, len(players)-1)
+    players[init_i]["order"] = True
     player_names = [player["name"] for player in players]
     print(f'参加メンバー : {player_names}')
-    print(f'{players[init_idx]["name"]} が親となりゲームスタート。\n')
+    print(f'{players[init_i]["name"]} が親となりゲームスタート。\n')
 
 def iseno_se(players):
     def choise_finger():
-        while True:
-            try:
-                choise = int(input(f'あなたの指の残数 : {players[0]["finger"]}\n出す本数を入力してください : '))
-            except ValueError:
+        for player in players:
+            if player["win"]:
                 continue
 
-            if 0 <= choise <= players[0]["finger"]:
-                players[0]["choise"] = choise
-                break
+            if player["is_auto"]:
+                r_choise = random.randint(0, player["finger"])
+                player["choise"] = r_choise
             else:
-                continue
-        
-        for idx in range(1, len(players)):
-            if players[idx]["win"]:
-                continue
-            cpu_choise = random.randint(0, players[idx]["finger"])
-            players[idx]["choise"] = cpu_choise
+                while True:
+                    try:
+                        choise = int(input('-> 出す本数を入力してください : '))
+                    except ValueError:
+                        continue
+                    if 0 <= choise <= player["finger"]:
+                        player["choise"] = choise
+                        break
+                    else:
+                        continue
+
         choise_total = sum([player["choise"] for player in players])
         return choise_total
     
-    def order_info():
-        print('-'*30)
-        print(f'プレイヤー数 : {len(player_names)}')
-        print(f'指の合計 :  {finger_total} ')
-        print(f'あなたは {players[order_idx[0]]["choise"]} 本の指を出す予定。')
-        print('-'*30)
-
     def order_choise():
-        if players[order_idx[0]]["name"] == 'You':
+        if not players[order_i]["is_auto"]:
             while True:
-                order_info()
+                print(f'-> 全プレイヤーの指の合計数は {finger_total} です。')
                 try:
-                    order_num = (int(input('宣言する合計本数を入力してください。 : ')))
+                    order_num = (int(input('-> 宣言する合計数を入力してください。 : ')))
                 except ValueError:
                     continue
 
-                if players[order_idx[0]]["choise"] <= order_num <= finger_total:
+                if players[order_i]["choise"] <= order_num <= finger_total:
                     break
                 else:
                     continue
+
         else:
-            order_num = random.randint(players[order_idx[0]]["choise"], finger_total)  
+            order_num = random.randint(players[order_i]["choise"], finger_total)
         return order_num   
 
     def jedgement():
-        print(f'\n{players[order_idx[0]]["name"]} < いっせのーせ・・・\n\n{order_num} !\n')
-        _ = [print(f'{player["name"]} : {player["choise"]}') for player in players]            
-        print(f'合計 : {choise_total}\n')
+        print(f'\n{players[order_i]["name"]} < いっせのーせ・・・{order_num} !\n')
+        _ = [print(f'{player["name"]} < {player["choise"]}') for player in players if not player["win"]]            
+        print(f'\n-> 合計 : {choise_total}')
         if order_num == choise_total:
             print('-> 宣言と一致しました。\n')
-            players[order_idx[0]]["finger"] -= 1
-            if players[order_idx[0]]["finger"] == 0:
-                print(f'{players[order_idx[0]]["name"]} 勝ち抜け!\n')
-                players[order_idx[0]]["win"] = True
-                players[order_idx[0]]["lank"] = lank
+            players[order_i]["finger"] -= 1
+            if players[order_i]["finger"] == 0:
+                print(f'{players[order_i]["name"]} 勝ち抜け!\n')
+                players[order_i]["win"] = True
+                players[order_i]["choise"] = 0
+                players[order_i]["lank"] = lank
                 return 1
         else:
             print('-> 宣言と一致しませんでした。\n')
 
-    def order_lotate():
-        players[order_idx[0]]["order"] = False
-        if order_idx[0] == len(players)-1:
-            order_idx[0] = 0
+    def order_lotate(order_i):
+        players[order_i]["order"] = False
+        if order_i == len(players)-1:
+            order_i = 0
         else:
-            order_idx[0] += 1
+            order_i += 1
         while True:
-            if players[order_idx[0]]["win"] == False:
-                players[order_idx[0]]["order"] = True
+            if not players[order_i]["win"]:
+                players[order_i]["order"] = True
                 break
-            if players[order_idx[0]]["win"] == True and order_idx[0] != len(players)-1:
-                order_idx[0] += 1
-            if players[order_idx[0]]["win"] == True and order_idx[0] == len(players)-1:
-                order_idx[0] = 0
+            if players[order_i]["win"] and order_i != len(players)-1:
+                order_i += 1
+            if players[order_i]["win"] and order_i == len(players)-1:
+                order_i = 0
 
     lank = 1
     while len([player["name"] for player in players if not player["win"]]) != 1:
-        order_idx = [idx for idx in range(len(players)) if players[idx]["order"]]
-        print('-'*30, f'\n親 : {players[order_idx[0]]["name"]}')
-        player_names = [player["name"] for player in players if not player["win"]]
+        order_i = int(''.join([str(i) for i in range(len(players)) if players[i]["order"]]))        
+        print('*'*10, f'親={players[order_i]["name"]}', '*'*10)
+        _ = [print(f'{player["name"]}\t: 指の残数 -> {player["finger"]}') for player in players if not player["win"]]
         finger_total = sum([player["finger"] for player in players])
         choise_total = choise_finger()
         order_num = order_choise()
         r = jedgement()
         lank += 1 if r == 1 else 0
-        order_lotate()
-        _ = [print(f'{player["name"]} の残数: {player["finger"]}') for player in players]
+        order_lotate(order_i)
     
     for player in players:
         if player["lank"] == None:
@@ -122,7 +118,8 @@ def main():
             break
         except ValueError:
             pass
-    players = [create_player('You')] + [create_player(f'CPU-{i}') for i in range(1, cpu_num + 1)]
+    players = [create_player('You', is_auto=False)] + [create_player(f'CPU-{i}') for i in range(1, cpu_num + 1)]
+    # players = [create_player('You')] + [create_player(f'CPU-{i}') for i in range(1, cpu_num + 1)]
     init_order(players)
     iseno_se(players)    
 
