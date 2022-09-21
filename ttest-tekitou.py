@@ -120,8 +120,8 @@ def main():
             pass    
     players = ([create_player('You', is_auto=False)] 
             + [create_player(f'CPU-{i}') for i in range(1, cpu_num + 1)])
-    players = ([create_player('You')] 
-            + [create_player(f'CPU-{i}') for i in range(1, cpu_num + 1)])
+    # players = ([create_player('You')] 
+    #         + [create_player(f'CPU-{i}') for i in range(1, cpu_num + 1)])
     init_order(players)
     iseno_se(players)    
 
