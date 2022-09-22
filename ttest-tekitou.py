@@ -1,4 +1,13 @@
 import random
+import argparse
+
+PARSER = argparse.ArgumentParser(description='Iseno-se Game.')
+PARSER.add_argument(
+    '--auto',
+    action='store_true',
+    help='Auto play Mode. (default: You are manual.)'
+)
+ARGS = PARSER.parse_args()
 
 def create_player(name, is_auto=True):
     return {
@@ -118,10 +127,13 @@ def main():
             break
         except ValueError:
             pass    
-    players = ([create_player('You', is_auto=False)] 
-            + [create_player(f'CPU-{i}') for i in range(1, cpu_num + 1)])
-    # players = ([create_player('You')] 
-    #         + [create_player(f'CPU-{i}') for i in range(1, cpu_num + 1)])
+
+    if ARGS.auto:
+        players = ([create_player('You')] 
+                + [create_player(f'CPU-{i}') for i in range(1, cpu_num + 1)])
+    else:
+        players = ([create_player('You', is_auto=False)] 
+                + [create_player(f'CPU-{i}') for i in range(1, cpu_num + 1)])
     init_order(players)
     iseno_se(players)    
 
